@@ -135,12 +135,17 @@
                 padding: 0;
             }
 
+            ul.bulleted-list {
+                list-style-type: disc;
+                padding-left: 2rem;
+            }
+
             li {
                 padding: 0.75rem 1rem;
                 margin-bottom: 0.5rem;
                 background: #f9fafb;
                 border-radius: 6px;
-                border-left: 3px solid var(--primary-color);
+                border-left: none;
             }
 
             #spinner {
@@ -273,6 +278,7 @@
 
             function createHtmlList(element, items) {
                 const ul = document.createElement("ul");
+                ul.className = "bulleted-list";
                 items.forEach(item => {
                     const li = document.createElement("li");
                     li.textContent = item;
