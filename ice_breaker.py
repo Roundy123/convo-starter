@@ -27,14 +27,15 @@ def clean_linkedin_url(url: str) -> str:
 
 def ice_break_with(name: str) -> tuple:
     """
-    Generate a summary and interesting facts about a person based on their LinkedIn profile.
+    Generate a summary, interesting facts, and ice breakers about a person based on their LinkedIn profile.
     
     Args:
-        name: The name of the person to look up
+        name: The name of the person to look up (can include company and location)
         
     Returns:
-        tuple: (summary object, profile picture URL)
+        tuple: (summary object, profile picture URL, ice breakers)
     """
+    # The lookup function will handle parsing the name string for company and location
     linkedin_username = linkedin_lookup_agent(name)
     # Clean up the LinkedIn URL
     linkedin_username = clean_linkedin_url(linkedin_username)
@@ -46,6 +47,8 @@ def ice_break_with(name: str) -> tuple:
     1. A short summary
     
     2. two interesting facts about them
+    
+    3. two ice breaker questions that would be good conversation starters with this person
 
     Use information from Linkedin
     \n{format_instructions}
@@ -68,15 +71,21 @@ def ice_break_with(name: str) -> tuple:
         # Use a default profile picture if none is available
         profile_pic_url = "https://picsum.photos/200"
     
-    return summary, profile_pic_url
+    # Extract ice breakers from the summary
+    ice_breakers = summary.ice_breakers if hasattr(summary, 'ice_breakers') else []
+    
+    return summary, profile_pic_url, ice_breakers
 
 if __name__ == "__main__":
     load_dotenv()
     print("Ice Breaker Enter")
-    summary, profile_pic_url = ice_break_with(name="Adam Round")
+    summary, profile_pic_url, ice_breakers = ice_break_with(name="Adam Round at Google in London")
     print(f"Summary: {summary.summary}")
     print("Interesting Facts:")
     for fact in summary.interesting_facts:
         print(f"- {fact}")
+    print("Ice Breakers:")
+    for breaker in ice_breakers:
+        print(f"- {breaker}")
     print(f"Profile Picture URL: {profile_pic_url}")
 

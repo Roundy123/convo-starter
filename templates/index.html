@@ -10,7 +10,7 @@
         <header>
             <form id="name-form" style="margin: 0 auto">
                 <h1>Ice Breaker</h1>
-                <input type="text" name="name" placeholder="Enter name">
+                <input type="text" name="name" placeholder="Enter name (e.g. John Doe at Google in London)" value="{{ initial_name or '' }}">
                 <button id="magic-button" type="submit" class="center">Do Your Magic</button>
             </form>
         </header>
@@ -33,73 +33,83 @@
                 <h2>Ice Breakers</h2>
                 <div id="ice-breakers"></div>
             </div>
-            <div>
-                <h2>Topics of Interest</h2>
-                <div id="topics-of-interest"></div>
-            </div>
         </main>
 
         <script>
             const form = document.getElementById("name-form");
             const spinner = document.getElementById("spinner");
             const result = document.getElementById("result");
+            const nameInput = document.querySelector('input[name="name"]');
 
-            form.addEventListener("submit", (ev) => {
-                ev.preventDefault();
+            // Function to update URL with search parameter
+            function updateUrl(name) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('name', name);
+                window.history.pushState({}, '', url);
+            }
 
+            // Function to perform the search
+            async function performSearch(name) {
                 result.style.display = "none";
                 spinner.style.display = "";
 
-                const formData = new FormData(form);
-                const name = formData.get('name');
+                try {
+                    const response = await fetch(`/process?name=${encodeURIComponent(name)}`, {
+                        method: "GET",
+                    });
+
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.error || 'Request failed');
+                    }
+
+                    const data = await response.json();
+                    document.getElementById("profile-pic").src = data.profile_pic_url;
+                    document.getElementById("summary").textContent = data.summary;
+                    createHtmlList(document.getElementById("facts"), data.interesting_facts);
+                    createHtmlList(document.getElementById("ice-breakers"), data.ice_breakers);
+
+                    spinner.style.display = "none";
+                    result.style.display = "";
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert(error.message);
+                    spinner.style.display = "none";
+                }
+            }
+
+            // Handle form submission
+            form.addEventListener("submit", (ev) => {
+                ev.preventDefault();
+                const name = nameInput.value.trim();
                 
                 if (!name) {
                     alert('Please enter a name');
-                    spinner.style.display = "none";
                     return;
                 }
 
-                fetch("/process", {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `name=${encodeURIComponent(name)}`
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(data => {
-                                throw new Error(data.error || 'Request failed');
-                            });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        document.getElementById("profile-pic").src = data.profile_pic_url;
-                        document.getElementById("summary").textContent = data.summary;
-                        createHtmlList(document.getElementById("facts"), data.interesting_facts);
-
-                        spinner.style.display = "none";
-                        result.style.display = "";
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert(error.message);
-                        spinner.style.display = "none";
-                    });
+                updateUrl(name);
+                performSearch(name);
             });
 
-            function createHtmlList(element, items)
-            {
-                const ul = document.createElement("ul");
+            // Check for name parameter in URL on page load
+            window.addEventListener('load', () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const name = urlParams.get('name');
+                if (name) {
+                    nameInput.value = name;
+                    performSearch(name);
+                }
+            });
 
+            function createHtmlList(element, items) {
+                const ul = document.createElement("ul");
                 items.forEach(item => {
                     const li = document.createElement("li");
                     li.textContent = item;
                     ul.appendChild(li);
-                })
-
-                element.innerHTML = "";
+                });
+                element.innerHTML = '';
                 element.appendChild(ul);
             }
         </script>

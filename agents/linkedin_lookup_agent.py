@@ -25,8 +25,10 @@ load_dotenv()
 def lookup(name: str) -> str:
     """
     Look up the LinkedIn profile URL for a given name using an LLM agent.
+    The name parameter can include additional context like company and location.
     Args:
-        name (str): The full name of the person to look up.
+        name (str): The search string, which can include name, company, and location
+                   (e.g., "John Doe at Google in London")
     Returns:
         str: The LinkedIn profile URL for the given name.
     """
@@ -34,7 +36,7 @@ def lookup(name: str) -> str:
         Tool(
             name="crawl_google_and_linkedin_profile_page",
             func=get_profile_url_tavily,
-            description="useful for when you need to find someone's LinkedIn profile URL. Input should be the person's full name."
+            description="useful for when you need to find someone's LinkedIn profile URL. Input should be the person's full name, optionally followed by company and location."
         )
     ]
     
@@ -66,6 +68,6 @@ def lookup(name: str) -> str:
 
 if __name__ == "__main__":
     # Example usage
-    name = "Adam Round"
+    name = "Adam Round at Google in London"
     url = lookup(name)
     print(f"LinkedIn profile URL for {name}: {url}") 
